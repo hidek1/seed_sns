@@ -1,4 +1,3 @@
-
  <?php  $dsn = 'mysql:dbname=seed_sns;host=localhost';
  // XAMPP環境下ではユーザー名rootパスワード空
  $user = 'root';
@@ -7,4 +6,3 @@
  $dbh = new PDO($dsn,$user,$password);
  $dbh->query('SET NAMES utf8');
  ?>
- 
