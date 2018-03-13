@@ -1,38 +1,40 @@
 <?php
+ session_start();
+ require('dbconnect.php');
 
-session_start();
-require('dbconnect.php');
+ // $_GETの値が空じゃない時 = セットされている時
+ if (!empty($_GET)) {
+   $sql = 'SELECT * FROM `tweets` WHERE `tweet_id`=?';
+   $data = array($_GET['tweet_id']);
+   $stmt = $dbh->prepare($sql);
+     $stmt->execute($data);
+     $tweet_edit = $stmt->fetch(PDO::FETCH_ASSOC);
+ }
 
-// var_dump($_GET);
+ // POST送信された時
+ if (!empty($_POST)){
 
+     // 入力チェック
+     if ($_POST['tweet'] == ''){
+       $error['tweet'] = 'blank';
+     }
 
-if (!empty($_GET) ) {
-$sql_select='SELECT * FROM ｀tweets｀ WHERE ｀tweet_id｀=?';
-$data_select=array($_GET['tweet_id']);
-$stmt_select=$dbh->prepare($sql_select);
-$stmt_select->execute($data_select);
-$update=$stmt_select->fetch(PDO::FETCH_ASSOC);
-}
+     // エラーがセットされていない時
+     if (!isset($error)) {
+       // SQL文作成
+       // Update文
+       $sql = 'UPDATE `tweets` SET `tweet`=?, `modified`=NOW() WHERE `tweet_id`=?';
+       //SQL文実行
+       $data = array($_POST['tweet'], $_GET['tweet_id']);
+       $stmt = $dbh->prepare($sql);
+       $stmt->execute($data);
 
-// var_dump($update);
+       //一覧へ移動する
+       header("Location: index.php");
+       exit();
 
-
-
-if (!empty($_POST) && isset($_POST)) {
-  if ($_POST['tweet'] == '') {
-      $error['tweet'] = 'blank';
-    }else{
-$sql_update='UPDATE ｀tweets｀ SET ｀tweet｀=? , ｀modified｀=NOW() WHERE ｀tweet_id｀=?';
-$data_update=array($_POST['tweet'],$update['tweet_id']);
-$stmt_update=$dbh->prepare($sql_update);
-$stmt_update->execute($data_update);
-
-
-header('Location: index.php');
-exit;
-}
-}
-
+     }
+ }
 
 ?>
 
@@ -83,18 +85,27 @@ exit;
       <div class="col-md-6 col-md-offset-3 content-margin-top">
         <h4>つぶやき編集</h4>
         <div class="msg">
-          <form action="" method="POST">
-      <input type="text" name="tweet" value="<?php echo $update['tweet']; ?>">
-      <input type="submit" name="" value="更新">
-    </form>
+          <form method="POST" action="" class="form-horizontal" role="form">
+              <!-- つぶやき -->
+              <div class="form-group">
+                <label class="col-sm-4 control-label">つぶやき</label>
+                <div class="col-sm-8">
+                  <textarea name="tweet" cols="50" rows="5" class="form-control" placeholder="例：Hello World!"><?php echo $tweet_edit['tweet']; ?></textarea>
+                  <?php if (isset($error) && ($error['tweet'] == 'blank')){ ?>
+                    <p class="error">なにかつぶやいてください。</p>
+                  <?php  } ?>
+                </div>
+              </div>
+            <ul class="paging">
+              <input type="submit" class="btn btn-info" value="更新">
+            </ul>
+          </form>
         </div>
         <a href="index.php">&laquo;&nbsp;一覧へ戻る</a>
       </div>
     </div>
   </div>
-  <?php if(isset($error['tweet']) && $error['tweet'] == 'failed') { ?>
-            <p class="error">* tweetねえよ</p>
-          <?php } ?>
+
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="assets/js/jquery-3.1.1.js"></script>
     <script src="assets/js/jquery-migrate-1.4.1.js"></script>
